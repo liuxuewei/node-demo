@@ -4,7 +4,7 @@ const port = 3000;
 
 const server = http.createServer((request, response) => {
     response.statusCode = 200;
-    response.setHeader('Content-Type', 'text/html');
+    response.setHeader('Content-Type', 'text/html;charset=utf-8');
     /**
      * URL {
      *   href: 'http://localhost:3000/status?name=ryan',
