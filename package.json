@@ -4,8 +4,13 @@
   "description": "测试",
   "main": "index.js",
   "scripts": {
-    "test": "node index.js",
+    "start": "node index.js",
+    "file": "node file.js",
     "http": "node http.js"
+  },
+  "dependencies": {
+    "bagpipe": "^0.3.5",
+    "request": "^2.88.2"
   },
   "author": "",
   "license": "ISC"
