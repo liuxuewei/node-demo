@@ -5,6 +5,7 @@
   "main": "index.js",
   "scripts": {
     "start": "node index.js",
+    "debug": "node --inspect-brk http.js",
     "file": "node file.js",
     "http": "node http.js"
   },
