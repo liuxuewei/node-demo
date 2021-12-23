@@ -1,4 +1,6 @@
 const http = require('http');
+const easyMonitor = require('easy-monitor');
+
 const hostname = '127.0.0.1';
 const port = 3000;
 
@@ -56,5 +58,7 @@ const server = http.createServer((request, response) => {
 });
 
 server.listen(port, hostname, () => {
+    //easy-monitor 2.x http://127.0.0.1:12333
+    easyMonitor('node-demo');
     console.log(`Server running at http://${hostname}:${port}/`);
 });
