@@ -1,3 +1,3 @@
 const say = require('./hello');
-say.sayHello();
+say.sayHello('测试');
 

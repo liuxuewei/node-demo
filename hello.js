@@ -1,3 +1,4 @@
-exports.sayHello = function(){
-    console.log('hello mayue 前端练习生');
+console.log('执行hello.js')
+exports.sayHello = function(name){
+    console.log(`执行sayHello ${name || '马跃'}`);
 }
