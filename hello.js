@@ -1,4 +1,13 @@
 console.log('执行hello.js')
+
+
+// const setHello = function(name){
+//     return `名字叫：${name}`
+// }
 exports.sayHello = function(name){
-    console.log(`执行sayHello ${name || '马跃'}`);
+    const str = setHello(name);
+    console.log(`执行sayHello ${str}`);
 }
+
+const setName = {}
+
