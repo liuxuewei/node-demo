@@ -1,6 +1,6 @@
 const net = require('net')
 
-const proxyServe = '192.168.0.104'
+const proxyServe = '30.219.88.142'
 
 const bridge = new net.Socket()
 bridge.connect(8080, proxyServe, _ => {
@@ -9,11 +9,11 @@ bridge.connect(8080, proxyServe, _ => {
 
 bridge.on('data', data => {
   const localServer = new net.Socket()
-  localServer.connect(8000, 'localhost', _ => {
+  localServer.connect(7001, 'localhost', _ => {
     localServer.write(data)
     localServer.on('data', data =>{
       bridge.write(data);
-      console.log('localServer res', data.toString());
+      console.log('localServer response');
     })
   })
 })

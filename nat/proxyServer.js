@@ -34,6 +34,8 @@ function regesterBridge (socket, url) {
   const keyMatch = url.match(/(^|&|\?)key=(?<key>[^&]*)(&|$)/);
   const key = keyMatch && keyMatch.groups ? keyMatch.groups.key : null;
   bridges[key] = socket;
+  // 新注册的桥，释放掉老的客户端
+  clients[key] = null;
   console.log('regesterBridge',key);
   socket.removeAllListeners('data')
 }
@@ -47,7 +49,7 @@ function findBridge (request, url) {
     return { bridge, key }
   }
 
-  const refererMatch = request.match(/\r\nReferer: (?<referer>.+)\r\n/);
+  const refererMatch = request.match(/\r\nreferer: (?<referer>.+)\r\n/i);
   const referer = refererMatch && refererMatch.groups ? refererMatch.groups.referer : null;
   if (!referer) return {}
 
@@ -62,12 +64,13 @@ function findBridge (request, url) {
 }
 
 function cacheClientRequest (bridge, key, socket, request, url) {
-  if (clients[key]) {
+  if (clients[key] && clients[key].requests) {
     clients[key].requests.push({bridge, key, socket, request, url})
   } else {
     clients[key] = {}
     clients[key].requests = [{bridge, key, socket, request, url}]
   }
+  console.log('request clients length', key, clients[key].requests.length)
 }
 
 function sendRequestToBridgeByKey (key) {
@@ -86,18 +89,26 @@ function sendRequestToBridgeByKey (key) {
   const newUrl = url.replace(key, '')
   const newRequest = request.replace(url, newUrl)
 
+  bridge.setEncoding = "utf8";
+
   bridge.write(newRequest)
   bridge.on('data', data => {
-    const response = data.toString()
+    const response = data.toString('utf8')
 
-    console.log('bridge response data', response);
+    const contentTypeMatch = response.match(/\r\ncontent-type: (?<contentType>.+)\r\n/i);
+    // console.log('contentTypeMatch', contentTypeMatch);
+    const contentType = contentTypeMatch && contentTypeMatch.groups ? contentTypeMatch.groups.contentType : null;
+    const isText = contentType && contentType.indexOf('text') > -1;
+    console.log('contentType', contentType);
+    // console.log('bridge response data:\r\n%j', response);
+    console.log('bridge response data:\r\n', isText ? response : contentType);
 
     const codeMatch = response.match(/^HTTP[S]*\/[1-9].[0-9] (?<code>[0-9]{3}).*\r\n/);
     let code = codeMatch && codeMatch.groups ? codeMatch.groups.code : null;
     if (code) {
       code = parseInt(code)
       if (code === 200) {
-        const contentLengthMatch = response.match(/\r\nContent-Length: (?<contentLength>.+)\r\n/);
+        const contentLengthMatch = response.match(/\r\ncontent-length: (?<contentLength>.+)\r\n/i);
         let contentLength = contentLengthMatch && contentLengthMatch.groups ? contentLengthMatch.groups.contentLength : null;
         if (contentLength) {
           contentLength = parseInt(contentLength)
