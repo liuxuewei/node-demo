@@ -1,6 +1,6 @@
 const net = require('net')
 
-const proxyServe = '30.219.88.142'
+const proxyServe = '192.168.0.1'
 
 const bridge = new net.Socket()
 bridge.connect(8080, proxyServe, _ => {
