@@ -6,13 +6,15 @@ const options = {
 }
 const tcp_client = net.Socket();
 const encoding = 'utf8';
+tcp_client.setEncoding(encoding);
 // 连接 tcp server
 tcp_client.connect(options, function () {
     console.log('开始连接服务器...');
     const data = { type: 'getMachineTemperature', tab: '获取设备温度' }
     setInterval(() => { // 定时向服务器获取数据
-        tcp_client.setEncoding(encoding);
-        tcp_client.write(JSON.stringify(data), encoding);
+        if(!tcp_client.destroyed){ //没有被销毁才继续推消息
+            tcp_client.write(JSON.stringify(data), encoding);
+        }
     }, 2000);
 })
 
@@ -26,14 +28,16 @@ tcp_client.on('data', function (data) {
 //超时
 tcp_client.on("timeout", () => {
     console.error("连接超时！");
+    tcp_client.end();
 });
 
 tcp_client.on('end', function () {
     console.log('数据传输完成!');
+    tcp_client.end();
 })
 
 
 tcp_client.on('error', function (err) {
     console.error('客户端出错!', err.message);
-    tcp_client.close();
+    tcp_client.end();
 })
