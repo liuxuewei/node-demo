@@ -8,9 +8,9 @@ const tcp_client = net.Socket();
 const encoding = 'utf8';
 // 连接 tcp server
 tcp_client.connect(options, function () {
-    console.log('Connected to Server');
-    const data = {type: 'getMachineTemperature', tab: '获取设备温度'}
-    setInterval(()=>{
+    console.log('开始连接服务器...');
+    const data = { type: 'getMachineTemperature', tab: '获取设备温度' }
+    setInterval(() => { // 定时向服务器获取数据
         tcp_client.setEncoding(encoding);
         tcp_client.write(JSON.stringify(data), encoding);
     }, 2000);
@@ -19,17 +19,21 @@ tcp_client.connect(options, function () {
 // 接收数据
 tcp_client.on('data', function (data) {
     const dataString = data.toString(encoding);
-    console.log('Received data from server: %s', dataString);
+    const dataJson = JSON.parse(dataString);
+    console.log('接收到数据: %j', dataJson);
 })
 
-tcp_client.on('end', function () {
-    console.log('Data end!');
-})
 //超时
-tcp_client.on("timeout",()=>{
-    console.error("tcp_client connect timeout！");
- });
- 
+tcp_client.on("timeout", () => {
+    console.error("连接超时！");
+});
+
+tcp_client.on('end', function () {
+    console.log('数据传输完成!');
+})
+
+
 tcp_client.on('error', function (err) {
-    console.error('tcp_client error!', err.message);
+    console.error('客户端出错!', err.message);
+    tcp_client.close();
 })
