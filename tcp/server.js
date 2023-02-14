@@ -5,7 +5,7 @@ const tcp_server = net.createServer();  // 创建 tcp server
 const PORT = 6688;
 const encoding = 'utf8';
 // 缓存客户端
-const ClinetSockets = {};
+const ClientSockets = {};
 
 // 监听 端口
 tcp_server.listen(PORT, function () {
@@ -14,19 +14,19 @@ tcp_server.listen(PORT, function () {
 
 // 向所有客户端广播消息
 const broadcast = function (msg){
-    for (const key in ClinetSockets) {
+    for (const key in ClientSockets) {
         console.log('broadcast', key);
         const dataJson = JSON.stringify({data: msg})
-        ClinetSockets[key] && ClinetSockets[key].write(dataJson)
+        ClientSockets[key] && ClientSockets[key].write(dataJson)
     }
 }
 
 // 关闭服务器
 const finishServer = function (){
-    for (const key in ClinetSockets) {
+    for (const key in ClientSockets) {
         console.log('finish', key);
-        ClinetSockets[key] && ClinetSockets[key].end();
-        ClinetSockets[key] && ClinetSockets[key].destroy();
+        ClientSockets[key] && ClientSockets[key].end();
+        ClientSockets[key] && ClientSockets[key].destroy();
     }
 }
 // 刷新服务器并发数据
@@ -37,16 +37,16 @@ const refreshClients = function() {
 }
 
 //处理客户端连接
-tcp_server.on('connection', function (clinetSocket) {
-    const clientKey = clinetSocket.remoteAddress+':'+clinetSocket.remotePort;
-    ClinetSockets[clientKey] = clinetSocket;
+tcp_server.on('connection', function (clientSocket) {
+    const clientKey = clientSocket.remoteAddress+':'+clientSocket.remotePort;
+    ClientSockets[clientKey] = clientSocket;
     //广播
     broadcast(clientKey + ', 连接服务器成功!')
 
     refreshClients();
 
     //处理客户端消息
-    clinetSocket.on('data', async function (data) {
+    clientSocket.on('data', async function (data) {
         const dataString = data.toString(encoding);
         const dataJson = JSON.parse(dataString);
         console.log(`客户端 %s 请求数据:%j`, clientKey, dataJson);
@@ -54,23 +54,23 @@ tcp_server.on('connection', function (clinetSocket) {
             const cpuTemperature = Number(Math.random() * 100).toFixed(2);
             const result = {clientKey: clientKey, type: dataJson.type, data: cpuTemperature}
             const resultString = JSON.stringify(result);
-            clinetSocket.setEncoding(encoding);
-            clinetSocket.write(resultString)
+            clientSocket.setEncoding(encoding);
+            clientSocket.write(resultString)
         }
     })
     // 客户端正常断开时执行
-    clinetSocket.on('close', function () {
-        clinetSocket.destroy();
-        ClinetSockets[clientKey] = null;
-        delete ClinetSockets[clientKey];
+    clientSocket.on('close', function () {
+        clientSocket.destroy();
+        ClientSockets[clientKey] = null;
+        delete ClientSockets[clientKey];
         console.log('客户端 %s 断开连接!', clientKey);
         refreshClients();
     })
     // 客户端正异断开时执行
-    clinetSocket.on("error", function (err) {
-        clinetSocket.destroy();
-        ClinetSockets[clientKey] = null;
-        delete ClinetSockets[clientKey];
+    clientSocket.on("error", function (err) {
+        clientSocket.destroy();
+        ClientSockets[clientKey] = null;
+        delete ClientSockets[clientKey];
         console.log(`客户端 %s 发生错误并断开连接: %s`, clientKey, err.message);
         refreshClients();
     });
